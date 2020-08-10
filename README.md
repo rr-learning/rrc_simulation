@@ -11,3 +11,9 @@ repository linked on the official open-source [project website](https://sites.go
 This repository contains a simulation, based on PyBullet, of the TriFinger robot
 used in the Real Robot Challenge. In addition, it contains OpenAI gym
 environments and evaluation scripts for the tasks of the simulation phase.
+
+For more information on the challenge see:
+
+- the [challenge website](https://real-robot-challenge.com)
+- the [software
+  documentation](https://people.tuebingen.mpg.de/felixwidmaier/realrobotchallenge/index.html)
