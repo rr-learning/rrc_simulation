@@ -4,12 +4,9 @@ from stable_baselines import PPO2
 from stable_baselines.common.policies import MlpPolicy
 from stable_baselines.common import set_global_seeds
 from stable_baselines.common.callbacks import CheckpointCallback
-from rrc_simulation.gym_wrapper.envs.example_pushing_training_env import (
-    ExamplePushingTrainingEnv,
-)
-from rrc_simulation.gym_wrapper.envs.example_pushing_training_env import (
-    FlatObservationWrapper,
-)
+
+from example_pushing_training_env import ExamplePushingTrainingEnv
+from example_pushing_training_env import FlatObservationWrapper
 
 import argparse
 import os
@@ -39,7 +36,7 @@ if __name__ == "__main__":
 
     total_time_steps = 80000000
     validate_every_timesteps = 2000000
-    model_path = os.path.join(output_path, "model")
+    model_path = os.path.join(output_path, "training_checkpoints")
 
     os.makedirs(model_path)
 

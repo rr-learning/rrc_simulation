@@ -1,11 +1,8 @@
 #!/usr/bin/env python3
 from stable_baselines import PPO2
-from rrc_simulation.gym_wrapper.envs.example_pushing_training_env import (
-    ExamplePushingTrainingEnv,
-)
-from rrc_simulation.gym_wrapper.envs.example_pushing_training_env import (
-    FlatObservationWrapper,
-)
+from example_pushing_training_env import ExamplePushingTrainingEnv
+from example_pushing_training_env import FlatObservationWrapper
+
 import argparse
 import os
 import gym
@@ -36,5 +33,6 @@ if __name__ == "__main__":
 
     for _ in range(10):
         obs = env.reset()
-        for _ in range(833):
+        done = False
+        while not done:
             obs, rew, done, info = env.step(policy_fn(obs))
