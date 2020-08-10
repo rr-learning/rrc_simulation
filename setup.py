@@ -19,8 +19,6 @@ d = generate_distutils_setup(
         "scripts/rrc_evaluate",
         "scripts/run_evaluate_policy_all_levels.py",
         "scripts/run_replay_all_levels.py",
-        "scripts/train_pushing_ppo.py",
-        "scripts/view_pushing_ppo.py",
     ],
 )
 
