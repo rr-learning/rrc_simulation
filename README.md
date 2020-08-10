@@ -17,3 +17,10 @@ For more information on the challenge see:
 - the [challenge website](https://real-robot-challenge.com)
 - the [software
   documentation](https://people.tuebingen.mpg.de/felixwidmaier/realrobotchallenge/index.html)
+  
+  
+## Authors
+- Felix Widmaier
+- Shruti Joshi
+- Vaibhav Agrawal
+- Manuel Wuethrich
