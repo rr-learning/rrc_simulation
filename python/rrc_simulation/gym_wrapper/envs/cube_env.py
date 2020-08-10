@@ -218,24 +218,29 @@ class CubeEnv(gym.GoalEnv):
     def reset(self):
         # reset simulation
         del self.platform
+        
+        # initialize simulation
+        initial_robot_position = TriFingerPlatform.spaces.robot_position.default
+        initial_object_pose=self.initializer.get_initial_state()
+        goal_object_pose = self.initializer.get_goal()
+        
         self.platform = TriFingerPlatform(
             visualization=self.visualization,
-            initial_robot_position=TriFingerPlatform.spaces.robot_position.default,
-            initial_object_pose=self.initializer.get_initial_state(),
+            initial_robot_position=initial_robot_position,
+            initial_object_pose=initial_object_pose,
         )
 
-        goal = self.initializer.get_goal()
         self.goal = {
-            "position": goal.position,
-            "orientation": goal.orientation,
+            "position": goal_object_pose.position,
+            "orientation": goal_object_pose.orientation,
         }
 
         # visualize the goal
         if self.visualization:
             self.goal_marker = visual_objects.CubeMarker(
                 width=0.065,
-                position=goal.position,
-                orientation=goal.orientation,
+                position=goal_object_pose.position,
+                orientation=goal_object_pose.orientation,
             )
 
         self.info = {"difficulty": self.initializer.difficulty}
