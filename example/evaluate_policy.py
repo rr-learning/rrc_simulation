@@ -94,7 +94,7 @@ def main():
         # compute will not make sense.
         env = ExamplePushingTrainingEnv(initializer=initializer, 
                                         frameskip=3, 
-                                        visualization=True)
+                                        visualization=False)
         env = FlatObservationWrapper(env)
         
         # we load the trained policy
