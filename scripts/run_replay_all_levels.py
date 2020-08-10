@@ -114,20 +114,29 @@ def main():
             level_rewards[sample.difficulty].append(run_replay(sample))
 
         # report
-        print("\n==========================================================\n")
+        print("\n=======================================================\n")
+
+        report = ""
         total_reward = 0
         for level, rewards in level_rewards.items():
             rewards = np.asarray(rewards)
             mean = rewards.mean()
-            print(
-                "Level {} mean reward:\t{:.3f},\tstd: {:.3f}".format(
+            report += (
+                "Level {} mean reward:\t{:.3f},\tstd: {:.3f}\n".format(
                     level, mean, rewards.std()
                 )
             )
             total_reward += level * mean
 
-        print("----------------------------------------------------------")
-        print("Total Weighted Reward: {:.3f}".format(total_reward))
+        report += ("-------------------------------------------------------\n")
+        report += ("Total Weighted Reward: {:.3f}\n".format(total_reward))
+
+        print(report)
+
+        # save report to file
+        report_file = os.path.join(args.input_directory, "reward.txt")
+        with open(report_file, "w") as fh:
+            fh.write(report)
 
     except Exception as e:
         print(e, file=sys.stderr)
