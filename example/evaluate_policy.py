@@ -45,9 +45,9 @@ class RandomPolicy:
 
     def predict(self, observation):
         return self.action_space.sample()
-    
+
 class PPOPolicy:
-    
+
     def __init__(self, path):
         self.ppo_policy = PPO2.load(path)
 
@@ -92,17 +92,17 @@ def main():
         # standard CubeEnv in any way which will affect the simulation (i.e.
         # affect the state action trajectories), the action trajectories you
         # compute will not make sense.
-        env = ExamplePushingTrainingEnv(initializer=initializer, 
-                                        frameskip=3, 
+        env = ExamplePushingTrainingEnv(initializer=initializer,
+                                        frameskip=3,
                                         visualization=False)
         env = FlatObservationWrapper(env)
-        
+
         # we load the trained policy
         policy_path = os.path.join(
-        "./training_checkpoints", "model_78000000_steps"
+            "./training_checkpoints", "model_78000000_steps"
         )
         policy = PPOPolicy(policy_path)
-        
+
     else:
         env = gym.make(
             "rrc_simulation.gym_wrapper:real_robot_challenge_phase_1-v1",
@@ -127,10 +127,8 @@ def main():
     print("Accumulated reward: {}".format(accumulated_reward))
 
     # store the log for evaluation
-    
     env.platform.store_action_log(output_file)
 
-    import ipdb; ipdb.set_trace()
 
 if __name__ == "__main__":
     main()
