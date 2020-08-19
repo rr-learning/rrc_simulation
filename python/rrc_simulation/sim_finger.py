@@ -283,9 +283,16 @@ class SimFinger:
         observation.velocity = np.array(
             [joint[1] for joint in current_joint_states]
         )
-        observation.torque = np.array(
-            [joint[3] for joint in current_joint_states]
-        )
+        # pybullet.getJointStates only contains actual joint torques in
+        # POSITION_CONTROL and VELOCITY_CONTROL mode.  In TORQUE_CONTROL mode
+        # only zeros are reported, the actual torque is exactly the same as the
+        # one that was applied.
+        try:
+            observation.torque = copy.copy(self.__applied_torque)
+        except AttributeError:
+            # when called before any torque was applied (and thus
+            # self.__applied_torque does not exist), set it to zero
+            observation.torque = np.zeros(len(observation.velocity))
 
         finger_tip_states = pybullet.getJointStates(
             self.finger_id, self.pybullet_tip_link_indices
@@ -352,6 +359,9 @@ class SimFinger:
         )
 
         self.__set_pybullet_motor_torques(applied_action.torque)
+
+        # store this here for use in _get_latest_observation()
+        self.__applied_torque = applied_action.torque
 
         return applied_action
 
