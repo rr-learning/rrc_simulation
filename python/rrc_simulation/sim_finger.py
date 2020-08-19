@@ -354,9 +354,7 @@ class SimFinger:
                 )
             )
 
-        applied_action.torque = self.__safety_check_torques(
-            torque_command.tolist()
-        )
+        applied_action.torque = self.__safety_check_torques(torque_command)
 
         self.__set_pybullet_motor_torques(applied_action.torque)
 
@@ -395,11 +393,11 @@ class SimFinger:
         the motors so that they do not exceed the safety torque limit
 
         Args:
-            desired_torques (list of floats): The torques desired to be
+            desired_torques (array): The torques desired to be
                 applied to the motors
 
         Returns:
-            applied_torques (list of floats): The torques that can be actually
+            applied_torques (array): The torques that can be actually
             applied to the motors (and will be applied)
         """
         applied_torques = np.clip(
@@ -416,12 +414,10 @@ class SimFinger:
         )
         applied_torques -= self.safety_kd * current_velocity
 
-        applied_torques = list(
-            np.clip(
-                np.asarray(applied_torques),
-                -self.max_motor_torque,
-                +self.max_motor_torque,
-            )
+        applied_torques = np.clip(
+            np.asarray(applied_torques),
+            -self.max_motor_torque,
+            +self.max_motor_torque,
         )
 
         return applied_torques
