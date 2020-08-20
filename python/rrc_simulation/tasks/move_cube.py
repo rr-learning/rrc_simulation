@@ -69,7 +69,7 @@ class Pose:
 
     def to_dict(self):
         """Convert to dictionary."""
-        return {"position": self.positions, "orientation": self.orientation}
+        return {"position": self.position, "orientation": self.orientation}
 
     def to_json(self):
         """Convert to JSON string."""
