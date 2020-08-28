@@ -93,14 +93,14 @@
     <visual>
       <origin rpy="1.57079632679 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="package://robot_properties_fingers/meshes/stl/pro/SIM__BL-Finger_Tip.stl" scale="1.0 1.0 1.0"/>
+        <mesh filename="package://robot_properties_fingers/meshes/stl/pro/SIM__BL-Finger_Tip_without_tip.stl" scale="1.0 1.0 1.0"/>
       </geometry>
       <material name="finger_material"/>
     </visual>
     <collision>
       <origin rpy="1.57079632679 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="package://robot_properties_fingers/meshes/stl/pro/SIM__BL-Finger_Tip.stl" scale="1.0 1.0 1.0"/>
+        <mesh filename="package://robot_properties_fingers/meshes/stl/pro/SIM__BL-Finger_Tip_without_tip.stl" scale="1.0 1.0 1.0"/>
       </geometry>
     </collision>
     <inertial>
@@ -111,6 +111,19 @@
   </link>
   <!-- fixed link for finger tip -->
   <link name="finger_tip_link">
+    <visual>
+      <origin rpy="1.57079632679 0 0" xyz="-0.0185 0 0.1626"/>
+      <geometry>
+        <mesh filename="package://robot_properties_fingers/meshes/stl/pro/SIM__BL-Finger_Tip_actual_tip.stl" scale="1.0 1.0 1.0"/>
+      </geometry>
+      <material name="finger_material"/>
+    </visual>
+    <collision>
+      <origin rpy="1.57079632679 0 0" xyz="-0.0185 0 0.1626"/>
+      <geometry>
+        <mesh filename="package://robot_properties_fingers/meshes/stl/pro/SIM__BL-Finger_Tip_actual_tip.stl" scale="1.0 1.0 1.0"/>
+      </geometry>
+    </collision>
     <inertial>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <mass value="0.031"/>

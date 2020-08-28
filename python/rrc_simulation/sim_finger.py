@@ -296,13 +296,28 @@ class SimFinger:
             # self.__applied_torque does not exist), set it to zero
             observation.torque = np.zeros(len(observation.velocity))
 
-        finger_tip_states = pybullet.getJointStates(
-            self.finger_id, self.pybullet_tip_link_indices,
-            physicsClientId=self._pybullet_client_id,
-        )
-        observation.tip_force = np.array(
-            [np.linalg.norm(tip[2][:3]) for tip in finger_tip_states]
-        )
+        finger_contact_states = [
+            pybullet.getContactPoints(
+                bodyA=self.finger_id,
+                linkIndexA=tip,
+                physicsClientId=self._pybullet_client_id,
+                )
+            for tip in self.pybullet_tip_link_indices]
+        tip_forces = []
+        for i in range(len(finger_contact_states)):
+            directed_contact_force = 0.0
+            try:
+                for contact_point in range(len(finger_contact_states[i])):
+                    contact_normal = -1 * np.array(finger_contact_states[i][contact_point][7])
+                    contact_force = np.array(finger_contact_states[i][contact_point][9])
+                    directed_contact_force += np.linalg.norm(
+                        contact_force * \
+                        contact_normal/np.linalg.norm(contact_normal))
+            except IndexError:
+                pass
+            tip_forces.append(directed_contact_force)
+        observation.tip_force = np.array(tip_forces)
+
         # The measurement of the push sensor of the real robot lies in the
         # interval [0, 1].  It is around 0.23 while there is no contact and
         # saturates at (very roughly) 20 N.
