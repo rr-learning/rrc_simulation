@@ -547,13 +547,6 @@ class SimFinger:
         self.__load_stage()
         self.__disable_pybullet_velocity_control()
 
-        # enable force sensor on tips
-        for joint_index in self.pybullet_tip_link_indices:
-            pybullet.enableJointForceTorqueSensor(
-                self.finger_id, joint_index, enableSensor=True,
-                physicsClientId=self._pybullet_client_id,
-            )
-
     def __set_pybullet_params(self):
         """
         To change properties of the robot such as its mass, friction, damping,
