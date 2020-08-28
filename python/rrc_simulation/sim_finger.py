@@ -307,7 +307,7 @@ class SimFinger:
         for i in range(len(finger_contact_states)):
             directed_contact_force = 0.0
             try:
-                for contact_point in range(len(finger_contact_states[i])):
+                for contact_point in finger_contact_states[i]:
                     contact_normal = -1 * np.array(finger_contact_states[i][contact_point][7])
                     contact_force = np.array(finger_contact_states[i][contact_point][9])
                     directed_contact_force += np.linalg.norm(
