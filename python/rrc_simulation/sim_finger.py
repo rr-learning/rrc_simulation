@@ -21,7 +21,10 @@ class SimFinger:
     """
 
     def __init__(
-        self, finger_type, time_step=0.004, enable_visualization=False,
+        self,
+        finger_type,
+        time_step=0.004,
+        enable_visualization=False,
     ):
         """
         Constructor, initializes the physical world we will work in.
@@ -155,7 +158,8 @@ class SimFinger:
         # copy.copy(action) does **not** work for robot_interfaces
         # actions!
         self._desired_action_t = type(action)(
-            copy.copy(action.torque), copy.copy(action.position),
+            copy.copy(action.torque),
+            copy.copy(action.position),
         )
 
         self._applied_action_t = self._set_desired_action(action)
@@ -301,18 +305,21 @@ class SimFinger:
                 bodyA=self.finger_id,
                 linkIndexA=tip,
                 physicsClientId=self._pybullet_client_id,
-                )
-            for tip in self.pybullet_tip_link_indices]
+            )
+            for tip in self.pybullet_tip_link_indices
+        ]
         tip_forces = []
         for i in range(len(finger_contact_states)):
             directed_contact_force = 0.0
             try:
                 for contact_point in finger_contact_states[i]:
-                    contact_normal = -1 * np.array(finger_contact_states[i][contact_point][7])
-                    contact_force = np.array(finger_contact_states[i][contact_point][9])
+                    contact_normal = -1 * np.array(contact_point[7])
+                    contact_force = np.array(contact_point[9])
                     directed_contact_force += np.linalg.norm(
-                        contact_force * \
-                        contact_normal/np.linalg.norm(contact_normal))
+                        contact_force
+                        * contact_normal
+                        / np.linalg.norm(contact_normal)
+                    )
             except IndexError:
                 pass
             tip_forces.append(directed_contact_force)
