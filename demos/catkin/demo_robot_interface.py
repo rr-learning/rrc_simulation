@@ -43,7 +43,9 @@ def main():
     args = parser.parse_args()
 
     # select the correct types/functions based on which robot is used
-    num_fingers = finger.number_of_fingers
+    num_fingers = finger_types_data.get_number_of_fingers(
+        args.finger_type
+    )
     if num_fingers == args.finger_type:
         finger_types = robot_interfaces.finger
         create_backend = (
