@@ -320,10 +320,10 @@ class SimFinger:
         observation.tip_force = np.array(tip_forces)
 
         # The measurement of the push sensor of the real robot lies in the
-        # interval [0, 1].  It is around 0.23 while there is no contact and
-        # saturates at (very roughly) 20 N.
-        push_sensor_saturation_force_N = 20.0
-        push_sensor_no_contact_value = 0.23
+        # interval [0, 1].  It does not go completely to zero, so add a bit of
+        # "no contact" offset.  It saturates somewhere around 5 N.
+        push_sensor_saturation_force_N = 5.0
+        push_sensor_no_contact_value = 0.05
         observation.tip_force /= push_sensor_saturation_force_N
         observation.tip_force += push_sensor_no_contact_value
         np.clip(observation.tip_force, 0.0, 1.0, out=observation.tip_force)
