@@ -12,6 +12,7 @@ class Marker:
         number_of_goals,
         goal_size=0.015,
         initial_position=[0.18, 0.18, 0.08],
+        **kwargs
     ):
         """
         Import a marker for visualization
@@ -28,6 +29,8 @@ class Marker:
         self.goal_ids = [None] * number_of_goals
         self.goal_orientations = [None] * number_of_goals
 
+        self._kwargs = kwargs
+
         # Can use both a block, or a sphere: uncomment accordingly
         for i in range(number_of_goals):
             color = color_cycle[i % len(color_cycle)]
@@ -37,16 +40,19 @@ class Marker:
                 shapeType=pybullet.GEOM_SPHERE,
                 radius=goal_size,
                 rgbaColor=color,
+                **self._kwargs,
             )
             self.goal_ids[i] = pybullet.createMultiBody(
                 baseVisualShapeIndex=goal_shape_ids[i],
                 basePosition=initial_position,
                 baseOrientation=[0, 0, 0, 1],
+                **self._kwargs,
             )
             (
                 _,
                 self.goal_orientations[i],
-            ) = pybullet.getBasePositionAndOrientation(self.goal_ids[i])
+            ) = pybullet.getBasePositionAndOrientation(self.goal_ids[i],
+                                                       **self._kwargs)
 
     def set_state(self, positions):
         """
@@ -61,14 +67,15 @@ class Marker:
             self.goal_ids, self.goal_orientations, positions
         ):
             pybullet.resetBasePositionAndOrientation(
-                goal_id, position, orientation
+                goal_id, position, orientation,
+                **self._kwargs,
             )
 
 
 class CubeMarker:
     """Visualize a cube."""
 
-    def __init__(self, width, position, orientation, color=(0, 1, 0, 0.5)):
+    def __init__(self, width, position, orientation, color=(0, 1, 0, 0.5), **kwargs):
         """
         Create a cube marker for visualization
 
@@ -78,15 +85,20 @@ class CubeMarker:
             orientation: Orientation as quaternion (x, y, z, w)
             color: Color of the cube as a tuple (r, b, g, q)
             """
+
+        self._kwargs = kwargs
+
         self.shape_id = pybullet.createVisualShape(
             shapeType=pybullet.GEOM_BOX,
             halfExtents=[width / 2] * 3,
             rgbaColor=color,
+            **self._kwargs,
         )
         self.body_id = pybullet.createMultiBody(
             baseVisualShapeIndex=self.shape_id,
             basePosition=position,
             baseOrientation=orientation,
+            **self._kwargs,
         )
 
     def set_state(self, position, orientation):
@@ -97,5 +109,6 @@ class CubeMarker:
             orientation: Orientation as quaternion (x, y, z, w)
         """
         pybullet.resetBasePositionAndOrientation(
-            self.body_id, position, orientation
+            self.body_id, position, orientation,
+            **self._kwargs,
         )
