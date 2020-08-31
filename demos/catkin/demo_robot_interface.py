@@ -46,7 +46,7 @@ def main():
     num_fingers = finger_types_data.get_number_of_fingers(
         args.finger_type
     )
-    if num_fingers == args.finger_type:
+    if num_fingers == 1:
         finger_types = robot_interfaces.finger
         create_backend = (
             rrc_simulation.drivers.create_single_finger_backend
