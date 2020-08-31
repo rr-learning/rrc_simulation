@@ -31,7 +31,9 @@ def import_mesh(
         flags = 0
 
     object_id = pybullet.createCollisionShape(
-        shapeType=pybullet.GEOM_MESH, fileName=mesh_file_path, flags=flags,
+        shapeType=pybullet.GEOM_MESH,
+        fileName=mesh_file_path,
+        flags=flags,
         physicsClientId=pybullet_client_id,
     )
 
@@ -45,8 +47,9 @@ def import_mesh(
 
     # set colour
     if color_rgba is not None:
-        pybullet.changeVisualShape(obj, -1, rgbaColor=color_rgba,
-                                   physicsClientId=pybullet_client_id)
+        pybullet.changeVisualShape(
+            obj, -1, rgbaColor=color_rgba, physicsClientId=pybullet_client_id
+        )
 
     return obj
 
@@ -78,7 +81,8 @@ class Block:
         self._kwargs = kwargs
 
         self.block_id = pybullet.createCollisionShape(
-            shapeType=pybullet.GEOM_BOX, halfExtents=[half_size] * 3,
+            shapeType=pybullet.GEOM_BOX,
+            halfExtents=[half_size] * 3,
             **self._kwargs,
         )
         self.block = pybullet.createMultiBody(
@@ -113,7 +117,9 @@ class Block:
             orientation: desired to be set
         """
         pybullet.resetBasePositionAndOrientation(
-            self.block, position, orientation,
+            self.block,
+            position,
+            orientation,
             **self._kwargs,
         )
 
@@ -135,5 +141,4 @@ class Block:
         # At this point it may be that pybullet was already shut down. To avoid
         # an error, only remove the object if the simulation is still running.
         if pybullet.isConnected(**self._kwargs):
-            pybullet.removeBody(self.block,
-                                **self._kwargs)
+            pybullet.removeBody(self.block, **self._kwargs)

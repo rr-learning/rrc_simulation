@@ -22,7 +22,7 @@ class Marker:
             goal_size (float): how big should this goal be
             initial_position (list of floats): where in xyz space should the
                 goal first be displayed
-            """
+        """
         color_cycle = [[1, 0, 0, 1], [0, 1, 0, 1], [0, 0, 1, 1]]
 
         goal_shape_ids = [None] * number_of_goals
@@ -51,8 +51,9 @@ class Marker:
             (
                 _,
                 self.goal_orientations[i],
-            ) = pybullet.getBasePositionAndOrientation(self.goal_ids[i],
-                                                       **self._kwargs)
+            ) = pybullet.getBasePositionAndOrientation(
+                self.goal_ids[i], **self._kwargs
+            )
 
     def set_state(self, positions):
         """
@@ -67,7 +68,9 @@ class Marker:
             self.goal_ids, self.goal_orientations, positions
         ):
             pybullet.resetBasePositionAndOrientation(
-                goal_id, position, orientation,
+                goal_id,
+                position,
+                orientation,
                 **self._kwargs,
             )
 
@@ -75,7 +78,9 @@ class Marker:
 class CubeMarker:
     """Visualize a cube."""
 
-    def __init__(self, width, position, orientation, color=(0, 1, 0, 0.5), **kwargs):
+    def __init__(
+        self, width, position, orientation, color=(0, 1, 0, 0.5), **kwargs
+    ):
         """
         Create a cube marker for visualization
 
@@ -84,7 +89,7 @@ class CubeMarker:
             position: Position (x, y, z)
             orientation: Orientation as quaternion (x, y, z, w)
             color: Color of the cube as a tuple (r, b, g, q)
-            """
+        """
 
         self._kwargs = kwargs
 
@@ -109,6 +114,8 @@ class CubeMarker:
             orientation: Orientation as quaternion (x, y, z, w)
         """
         pybullet.resetBasePositionAndOrientation(
-            self.body_id, position, orientation,
+            self.body_id,
+            position,
+            orientation,
             **self._kwargs,
         )

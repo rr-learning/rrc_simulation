@@ -71,7 +71,9 @@ class SimFinger:
 
         self.__create_link_lists()
         self.__set_urdf_path()
-        self._pybullet_client_id = self.__connect_to_pybullet(enable_visualization)
+        self._pybullet_client_id = self.__connect_to_pybullet(
+            enable_visualization
+        )
         self.__setup_pybullet_simulation()
 
         self.pinocchio_utils = pinocchio_utils.PinocchioUtils(
@@ -279,7 +281,8 @@ class SimFinger:
         """
         observation = Observation()
         current_joint_states = pybullet.getJointStates(
-            self.finger_id, self.pybullet_joint_indices,
+            self.finger_id,
+            self.pybullet_joint_indices,
             physicsClientId=self._pybullet_client_id,
         )
 
@@ -427,8 +430,9 @@ class SimFinger:
         )
 
         current_joint_states = pybullet.getJointStates(
-            self.finger_id, self.pybullet_joint_indices,
-            physicsClientId=self._pybullet_client_id
+            self.finger_id,
+            self.pybullet_joint_indices,
+            physicsClientId=self._pybullet_client_id,
         )
         current_velocity = np.array(
             [joint[1] for joint in current_joint_states]
@@ -463,7 +467,8 @@ class SimFinger:
             kd = self.velocity_gains
 
         current_joint_states = pybullet.getJointStates(
-            self.finger_id, self.pybullet_joint_indices,
+            self.finger_id,
+            self.pybullet_joint_indices,
             physicsClientId=self._pybullet_client_id,
         )
         current_position = np.array(
@@ -534,15 +539,22 @@ class SimFinger:
         Set the physical parameters of the world in which the simulation
         will run, and import the models to be simulated
         """
-        pybullet.setAdditionalSearchPath(pybullet_data.getDataPath(),
-                                         physicsClientId=self._pybullet_client_id)
-        pybullet.setGravity(0, 0, -9.81,
-                            physicsClientId=self._pybullet_client_id)
-        pybullet.setTimeStep(self.time_step_s,
-                             physicsClientId=self._pybullet_client_id)
+        pybullet.setAdditionalSearchPath(
+            pybullet_data.getDataPath(),
+            physicsClientId=self._pybullet_client_id,
+        )
+        pybullet.setGravity(
+            0, 0, -9.81, physicsClientId=self._pybullet_client_id
+        )
+        pybullet.setTimeStep(
+            self.time_step_s, physicsClientId=self._pybullet_client_id
+        )
 
-        pybullet.loadURDF("plane_transparent.urdf", [0, 0, 0],
-                          physicsClientId=self._pybullet_client_id)
+        pybullet.loadURDF(
+            "plane_transparent.urdf",
+            [0, 0, 0],
+            physicsClientId=self._pybullet_client_id,
+        )
         self.__load_robot_urdf()
         self.__set_pybullet_params()
         self.__load_stage()
@@ -595,7 +607,7 @@ class SimFinger:
         the view of the camera.
         """
         if enable_visualization:
-            pybullet_client_id  = pybullet.connect(pybullet.GUI)
+            pybullet_client_id = pybullet.connect(pybullet.GUI)
         else:
             pybullet_client_id = pybullet.connect(pybullet.DIRECT)
 
@@ -632,8 +644,9 @@ class SimFinger:
         Load the single/trifinger model from the corresponding urdf
         """
         finger_base_position = [0, 0, 0.0]
-        finger_base_orientation = pybullet.getQuaternionFromEuler([0, 0, 0],
-                                                                  physicsClientId=self._pybullet_client_id)
+        finger_base_orientation = pybullet.getQuaternionFromEuler(
+            [0, 0, 0], physicsClientId=self._pybullet_client_id
+        )
 
         self.finger_id = pybullet.loadURDF(
             fileName=self.finger_urdf_path,
@@ -650,15 +663,20 @@ class SimFinger:
         # create a map link_name -> link_index
         # Source: https://pybullet.org/Bullet/phpBB3/viewtopic.php?t=12728.
         link_name_to_index = {
-            pybullet.getBodyInfo(self.finger_id,
-                                 physicsClientId=self._pybullet_client_id)[0].decode("UTF-8"): -1,
+            pybullet.getBodyInfo(
+                self.finger_id, physicsClientId=self._pybullet_client_id
+            )[0].decode("UTF-8"): -1,
         }
-        for joint_idx in range(pybullet.getNumJoints(self.finger_id,
-                                                     physicsClientId=self._pybullet_client_id)):
-            link_name = pybullet.getJointInfo(self.finger_id, joint_idx,
-                                              physicsClientId=self._pybullet_client_id)[
-                12
-            ].decode("UTF-8")
+        for joint_idx in range(
+            pybullet.getNumJoints(
+                self.finger_id, physicsClientId=self._pybullet_client_id
+            )
+        ):
+            link_name = pybullet.getJointInfo(
+                self.finger_id,
+                joint_idx,
+                physicsClientId=self._pybullet_client_id,
+            )[12].decode("UTF-8")
             link_name_to_index[link_name] = joint_idx
 
         self.pybullet_link_indices = [
