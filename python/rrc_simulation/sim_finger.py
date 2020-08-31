@@ -21,7 +21,10 @@ class SimFinger:
     """
 
     def __init__(
-        self, finger_type, time_step=0.004, enable_visualization=False,
+        self,
+        finger_type,
+        time_step=0.004,
+        enable_visualization=False,
     ):
         """
         Constructor, initializes the physical world we will work in.
@@ -155,7 +158,8 @@ class SimFinger:
         # copy.copy(action) does **not** work for robot_interfaces
         # actions!
         self._desired_action_t = type(action)(
-            copy.copy(action.torque), copy.copy(action.position),
+            copy.copy(action.torque),
+            copy.copy(action.position),
         )
 
         self._applied_action_t = self._set_desired_action(action)
@@ -296,18 +300,30 @@ class SimFinger:
             # self.__applied_torque does not exist), set it to zero
             observation.torque = np.zeros(len(observation.velocity))
 
-        finger_tip_states = pybullet.getJointStates(
-            self.finger_id, self.pybullet_tip_link_indices,
-            physicsClientId=self._pybullet_client_id,
-        )
-        observation.tip_force = np.array(
-            [np.linalg.norm(tip[2][:3]) for tip in finger_tip_states]
-        )
+        finger_contact_states = [
+            pybullet.getContactPoints(
+                bodyA=self.finger_id,
+                linkIndexA=tip,
+                physicsClientId=self._pybullet_client_id,
+            )
+            for tip in self.pybullet_tip_link_indices
+        ]
+        tip_forces = []
+        for i in range(len(finger_contact_states)):
+            directed_contact_force = 0.0
+            try:
+                for contact_point in finger_contact_states[i]:
+                    directed_contact_force += np.array(contact_point[9])
+            except IndexError:
+                pass
+            tip_forces.append(directed_contact_force)
+        observation.tip_force = np.array(tip_forces)
+
         # The measurement of the push sensor of the real robot lies in the
-        # interval [0, 1].  It is around 0.23 while there is no contact and
-        # saturates at (very roughly) 20 N.
-        push_sensor_saturation_force_N = 20.0
-        push_sensor_no_contact_value = 0.23
+        # interval [0, 1].  It does not go completely to zero, so add a bit of
+        # "no contact" offset.  It saturates somewhere around 5 N.
+        push_sensor_saturation_force_N = 5.0
+        push_sensor_no_contact_value = 0.05
         observation.tip_force /= push_sensor_saturation_force_N
         observation.tip_force += push_sensor_no_contact_value
         np.clip(observation.tip_force, 0.0, 1.0, out=observation.tip_force)
@@ -531,13 +547,6 @@ class SimFinger:
         self.__set_pybullet_params()
         self.__load_stage()
         self.__disable_pybullet_velocity_control()
-
-        # enable force sensor on tips
-        for joint_index in self.pybullet_tip_link_indices:
-            pybullet.enableJointForceTorqueSensor(
-                self.finger_id, joint_index, enableSensor=True,
-                physicsClientId=self._pybullet_client_id,
-            )
 
     def __set_pybullet_params(self):
         """
