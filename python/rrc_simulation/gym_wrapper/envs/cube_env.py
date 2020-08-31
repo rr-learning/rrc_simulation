@@ -254,12 +254,14 @@ class CubeEnv(gym.GoalEnv):
     def reset(self):
         # reset simulation
         del self.platform
-        
+
         # initialize simulation
-        initial_robot_position = TriFingerPlatform.spaces.robot_position.default
-        initial_object_pose=self.initializer.get_initial_state()
+        initial_robot_position = (
+            TriFingerPlatform.spaces.robot_position.default
+        )
+        initial_object_pose = self.initializer.get_initial_state()
         goal_object_pose = self.initializer.get_goal()
-        
+
         self.platform = TriFingerPlatform(
             visualization=self.visualization,
             initial_robot_position=initial_robot_position,
@@ -277,6 +279,7 @@ class CubeEnv(gym.GoalEnv):
                 width=0.065,
                 position=goal_object_pose.position,
                 orientation=goal_object_pose.orientation,
+                physicsClientId=self.platform.simfinger._pybullet_client_id,
             )
 
         self.info = {"difficulty": self.initializer.difficulty}

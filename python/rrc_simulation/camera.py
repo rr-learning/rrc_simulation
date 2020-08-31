@@ -11,6 +11,7 @@ class Camera(object):
         camera_orientation,
         image_size=(720, 540),
         pybullet_client=pybullet,
+        **kwargs,
     ):
         """Initialize.
 
@@ -24,6 +25,9 @@ class Camera(object):
             pybullet_client:  Client for accessing the simulation.  By default
                 the "pybullet" module is used directly.
         """
+
+        self._kwargs = kwargs
+
         self._pybullet_client = pybullet_client
         self._width = image_size[0]
         self._height = image_size[1]
@@ -36,6 +40,7 @@ class Camera(object):
             cameraEyePosition=camera_position,
             cameraTargetPosition=target_position,
             cameraUpVector=camera_up_vector,
+            **self._kwargs,
         )
 
         self._proj_matrix = self._pybullet_client.computeProjectionMatrixFOV(
@@ -43,6 +48,7 @@ class Camera(object):
             aspect=float(self._width) / self._height,
             nearVal=0.001,
             farVal=100.0,
+            **self._kwargs,
         )
 
     def get_image(self):
@@ -59,6 +65,7 @@ class Camera(object):
             viewMatrix=self._view_matrix,
             projectionMatrix=self._proj_matrix,
             renderer=pybullet.ER_BULLET_HARDWARE_OPENGL,
+            **self._kwargs,
         )
         # remove the alpha channel
         return img[:, :, :3]
@@ -67,22 +74,25 @@ class Camera(object):
 class TriFingerCameras:
     """Simulate the three cameras of the TriFinger platform."""
 
-    def __init__(self):
+    def __init__(self, **kwargs):
         self.cameras = [
             # camera60
             Camera(
                 camera_position=[0.2496, 0.2458, 0.4190],
                 camera_orientation=[0.3760, 0.8690, -0.2918, -0.1354],
+                **kwargs,
             ),
             # camera180
             Camera(
                 camera_position=[0.0047, -0.2834, 0.4558],
                 camera_orientation=[0.9655, -0.0098, -0.0065, -0.2603],
+                **kwargs,
             ),
             # camera300
             Camera(
                 camera_position=[-0.2470, 0.2513, 0.3943],
                 camera_orientation=[-0.3633, 0.8686, -0.3141, 0.1220],
+                **kwargs,
             ),
         ]
 

@@ -21,7 +21,10 @@ class SimFinger:
     """
 
     def __init__(
-        self, finger_type, time_step=0.004, enable_visualization=False,
+        self,
+        finger_type,
+        time_step=0.004,
+        enable_visualization=False,
     ):
         """
         Constructor, initializes the physical world we will work in.
@@ -68,7 +71,9 @@ class SimFinger:
 
         self.__create_link_lists()
         self.__set_urdf_path()
-        self.__connect_to_pybullet(enable_visualization)
+        self._pybullet_client_id = self.__connect_to_pybullet(
+            enable_visualization
+        )
         self.__setup_pybullet_simulation()
 
         self.pinocchio_utils = pinocchio_utils.PinocchioUtils(
@@ -155,7 +160,8 @@ class SimFinger:
         # copy.copy(action) does **not** work for robot_interfaces
         # actions!
         self._desired_action_t = type(action)(
-            copy.copy(action.torque), copy.copy(action.position),
+            copy.copy(action.torque),
+            copy.copy(action.position),
         )
 
         self._applied_action_t = self._set_desired_action(action)
@@ -262,6 +268,7 @@ class SimFinger:
                 joint_id,
                 joint_positions[i],
                 joint_velocities[i],
+                physicsClientId=self._pybullet_client_id,
             )
         return self._get_latest_observation()
 
@@ -274,7 +281,9 @@ class SimFinger:
         """
         observation = Observation()
         current_joint_states = pybullet.getJointStates(
-            self.finger_id, self.pybullet_joint_indices
+            self.finger_id,
+            self.pybullet_joint_indices,
+            physicsClientId=self._pybullet_client_id,
         )
 
         observation.position = np.array(
@@ -294,17 +303,30 @@ class SimFinger:
             # self.__applied_torque does not exist), set it to zero
             observation.torque = np.zeros(len(observation.velocity))
 
-        finger_tip_states = pybullet.getJointStates(
-            self.finger_id, self.pybullet_tip_link_indices
-        )
-        observation.tip_force = np.array(
-            [np.linalg.norm(tip[2][:3]) for tip in finger_tip_states]
-        )
+        finger_contact_states = [
+            pybullet.getContactPoints(
+                bodyA=self.finger_id,
+                linkIndexA=tip,
+                physicsClientId=self._pybullet_client_id,
+            )
+            for tip in self.pybullet_tip_link_indices
+        ]
+        tip_forces = []
+        for i in range(len(finger_contact_states)):
+            directed_contact_force = 0.0
+            try:
+                for contact_point in finger_contact_states[i]:
+                    directed_contact_force += np.array(contact_point[9])
+            except IndexError:
+                pass
+            tip_forces.append(directed_contact_force)
+        observation.tip_force = np.array(tip_forces)
+
         # The measurement of the push sensor of the real robot lies in the
-        # interval [0, 1].  It is around 0.23 while there is no contact and
-        # saturates at (very roughly) 20 N.
-        push_sensor_saturation_force_N = 20.0
-        push_sensor_no_contact_value = 0.23
+        # interval [0, 1].  It does not go completely to zero, so add a bit of
+        # "no contact" offset.  It saturates somewhere around 5 N.
+        push_sensor_saturation_force_N = 5.0
+        push_sensor_no_contact_value = 0.05
         observation.tip_force /= push_sensor_saturation_force_N
         observation.tip_force += push_sensor_no_contact_value
         np.clip(observation.tip_force, 0.0, 1.0, out=observation.tip_force)
@@ -367,7 +389,7 @@ class SimFinger:
         """
         Step the simulation to go to the next world state.
         """
-        pybullet.stepSimulation()
+        pybullet.stepSimulation(physicsClientId=self._pybullet_client_id)
 
     def _disconnect_from_pybullet(self):
         """Disconnect from the simulation.
@@ -375,8 +397,8 @@ class SimFinger:
         Disconnects from the simulation and sets simulation to disabled to
         avoid any further function calls to it.
         """
-        if pybullet.isConnected():
-            pybullet.disconnect()
+        if pybullet.isConnected(physicsClientId=self._pybullet_client_id):
+            pybullet.disconnect(physicsClientId=self._pybullet_client_id)
 
     def __set_pybullet_motor_torques(self, motor_torques):
 
@@ -385,6 +407,7 @@ class SimFinger:
             jointIndices=self.pybullet_joint_indices,
             controlMode=pybullet.TORQUE_CONTROL,
             forces=motor_torques,
+            physicsClientId=self._pybullet_client_id,
         )
 
     def __safety_check_torques(self, desired_torques):
@@ -407,7 +430,9 @@ class SimFinger:
         )
 
         current_joint_states = pybullet.getJointStates(
-            self.finger_id, self.pybullet_joint_indices
+            self.finger_id,
+            self.pybullet_joint_indices,
+            physicsClientId=self._pybullet_client_id,
         )
         current_velocity = np.array(
             [joint[1] for joint in current_joint_states]
@@ -442,7 +467,9 @@ class SimFinger:
             kd = self.velocity_gains
 
         current_joint_states = pybullet.getJointStates(
-            self.finger_id, self.pybullet_joint_indices
+            self.finger_id,
+            self.pybullet_joint_indices,
+            physicsClientId=self._pybullet_client_id,
         )
         current_position = np.array(
             [joint[0] for joint in current_joint_states]
@@ -512,21 +539,26 @@ class SimFinger:
         Set the physical parameters of the world in which the simulation
         will run, and import the models to be simulated
         """
-        pybullet.setAdditionalSearchPath(pybullet_data.getDataPath())
-        pybullet.setGravity(0, 0, -9.81)
-        pybullet.setTimeStep(self.time_step_s)
+        pybullet.setAdditionalSearchPath(
+            pybullet_data.getDataPath(),
+            physicsClientId=self._pybullet_client_id,
+        )
+        pybullet.setGravity(
+            0, 0, -9.81, physicsClientId=self._pybullet_client_id
+        )
+        pybullet.setTimeStep(
+            self.time_step_s, physicsClientId=self._pybullet_client_id
+        )
 
-        pybullet.loadURDF("plane_transparent.urdf", [0, 0, 0])
+        pybullet.loadURDF(
+            "plane_transparent.urdf",
+            [0, 0, 0],
+            physicsClientId=self._pybullet_client_id,
+        )
         self.__load_robot_urdf()
         self.__set_pybullet_params()
         self.__load_stage()
         self.__disable_pybullet_velocity_control()
-
-        # enable force sensor on tips
-        for joint_index in self.pybullet_tip_link_indices:
-            pybullet.enableJointForceTorqueSensor(
-                self.finger_id, joint_index, enableSensor=True
-            )
 
     def __set_pybullet_params(self):
         """
@@ -547,6 +579,7 @@ class SimFinger:
                 angularDamping=0.5,
                 contactStiffness=0.1,
                 contactDamping=0.05,
+                physicsClientId=self._pybullet_client_id,
             )
 
     def __disable_pybullet_velocity_control(self):
@@ -561,6 +594,7 @@ class SimFinger:
             controlMode=pybullet.VELOCITY_CONTROL,
             targetVelocities=[0] * len(self.pybullet_joint_indices),
             forces=[0] * len(self.pybullet_joint_indices),
+            physicsClientId=self._pybullet_client_id,
         )
 
     @staticmethod
@@ -573,9 +607,11 @@ class SimFinger:
         the view of the camera.
         """
         if enable_visualization:
-            pybullet.connect(pybullet.GUI)
+            pybullet_client_id = pybullet.connect(pybullet.GUI)
         else:
-            pybullet.connect(pybullet.DIRECT)
+            pybullet_client_id = pybullet.connect(pybullet.DIRECT)
+
+        return pybullet_client_id
 
     def __set_urdf_path(self):
         """
@@ -608,7 +644,9 @@ class SimFinger:
         Load the single/trifinger model from the corresponding urdf
         """
         finger_base_position = [0, 0, 0.0]
-        finger_base_orientation = pybullet.getQuaternionFromEuler([0, 0, 0])
+        finger_base_orientation = pybullet.getQuaternionFromEuler(
+            [0, 0, 0], physicsClientId=self._pybullet_client_id
+        )
 
         self.finger_id = pybullet.loadURDF(
             fileName=self.finger_urdf_path,
@@ -619,17 +657,26 @@ class SimFinger:
                 pybullet.URDF_USE_INERTIA_FROM_FILE
                 | pybullet.URDF_USE_SELF_COLLISION
             ),
+            physicsClientId=self._pybullet_client_id,
         )
 
         # create a map link_name -> link_index
         # Source: https://pybullet.org/Bullet/phpBB3/viewtopic.php?t=12728.
         link_name_to_index = {
-            pybullet.getBodyInfo(self.finger_id)[0].decode("UTF-8"): -1,
+            pybullet.getBodyInfo(
+                self.finger_id, physicsClientId=self._pybullet_client_id
+            )[0].decode("UTF-8"): -1,
         }
-        for joint_idx in range(pybullet.getNumJoints(self.finger_id)):
-            link_name = pybullet.getJointInfo(self.finger_id, joint_idx)[
-                12
-            ].decode("UTF-8")
+        for joint_idx in range(
+            pybullet.getNumJoints(
+                self.finger_id, physicsClientId=self._pybullet_client_id
+            )
+        ):
+            link_name = pybullet.getJointInfo(
+                self.finger_id,
+                joint_idx,
+                physicsClientId=self._pybullet_client_id,
+            )[12].decode("UTF-8")
             link_name_to_index[link_name] = joint_idx
 
         self.pybullet_link_indices = [
@@ -659,6 +706,7 @@ class SimFinger:
                 mesh_path("Stage_simplified.stl"),
                 position=[0, 0, 0],
                 is_concave=True,
+                pybullet_client_id=self._pybullet_client_id,
             )
 
         elif self.finger_type in ["trifingerone", "tri", "trifingerpro"]:
@@ -670,12 +718,14 @@ class SimFinger:
                     position=[0, 0, 0],
                     is_concave=False,
                     color_rgba=table_colour,
+                    pybullet_client_id=self._pybullet_client_id,
                 )
                 collision_objects.import_mesh(
                     mesh_path("high_table_boundary.stl"),
                     position=[0, 0, 0],
                     is_concave=True,
                     color_rgba=high_border_colour,
+                    pybullet_client_id=self._pybullet_client_id,
                 )
             else:
                 collision_objects.import_mesh(
@@ -683,6 +733,7 @@ class SimFinger:
                     position=[0, 0, 0],
                     is_concave=True,
                     color_rgba=table_colour,
+                    pybullet_client_id=self._pybullet_client_id,
                 )
         elif self.finger_type == "trifingeredu":
             table_colour = (0.95, 0.95, 0.95, 1.0)
@@ -692,12 +743,14 @@ class SimFinger:
                 position=[0, 0, 0],
                 is_concave=False,
                 color_rgba=table_colour,
+                pybullet_client_id=self._pybullet_client_id,
             )
             collision_objects.import_mesh(
                 mesh_path("edu/frame_wall.stl"),
                 position=[0, 0, 0],
                 is_concave=True,
                 color_rgba=high_border_colour,
+                pybullet_client_id=self._pybullet_client_id,
             )
         else:
             raise ValueError("Invalid finger type '%s'" % self.finger_type)
