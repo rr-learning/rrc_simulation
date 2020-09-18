@@ -20,6 +20,7 @@ Both initial and goal pose are given as JSON strings with keys "position" and
 """
 import argparse
 import json
+import pickle
 import sys
 import numpy as np
 
@@ -64,8 +65,9 @@ def main():
     )
     args = parser.parse_args()
 
-    with open(args.logfile, "r") as fh:
-        log = json.load(fh)
+    with open(args.logfile, "rb") as fh:
+        # log = json.load(fh)
+        log = pickle.load(fh)
 
     initial_object_pose = move_cube.Pose.from_json(args.initial_pose)
     goal_pose = move_cube.Pose.from_json(args.goal_pose)

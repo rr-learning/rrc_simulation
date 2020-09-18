@@ -1,4 +1,5 @@
 import json
+import pickle
 import numpy as np
 
 
@@ -390,5 +391,6 @@ class TriFingerPlatform:
             "orientation": object_pose.orientation.tolist(),
         }
 
-        with open(filename, "w") as fh:
-            json.dump(self._action_log, fh)
+        with open(filename, "wb") as fh:
+            # json.dump(self._action_log, fh)
+            pickle.dump(self._action_log, fh)
