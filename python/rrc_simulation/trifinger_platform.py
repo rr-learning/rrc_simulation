@@ -1,4 +1,4 @@
-import json
+import pickle
 import numpy as np
 
 
@@ -204,11 +204,8 @@ class TriFingerPlatform:
         # Initialize log
         # ==============
         self._action_log = {
-            "initial_robot_position": initial_robot_position.tolist(),
-            "initial_object_pose": {
-                "position": initial_object_pose.position.tolist(),
-                "orientation": initial_object_pose.orientation.tolist(),
-            },
+            "initial_robot_position": initial_robot_position,
+            "initial_object_pose": initial_object_pose,
             "actions": [],
         }
 
@@ -261,13 +258,14 @@ class TriFingerPlatform:
                     ].timestamp = camera_timestamp_s
 
         # write the desired action to the log
+        object_pose = self.get_object_pose(t)
+        robot_obs = self.get_robot_observation(t)
         self._action_log["actions"].append(
             {
                 "t": t,
-                "torque": action.torque.tolist(),
-                "position": action.position.tolist(),
-                "position_kp": action.position_kp.tolist(),
-                "position_kd": action.position_kd.tolist(),
+                "action": action,
+                "object_pose": object_pose,
+                "robot_observation": robot_obs,
             }
         )
 
@@ -386,9 +384,9 @@ class TriFingerPlatform:
         t = self.simfinger.get_current_timeindex()
         object_pose = self.get_object_pose(t)
         self._action_log["final_object_pose"] = {
-            "position": object_pose.position.tolist(),
-            "orientation": object_pose.orientation.tolist(),
+            "t": t,
+            "pose": object_pose,
         }
 
-        with open(filename, "w") as fh:
-            json.dump(self._action_log, fh)
+        with open(filename, "wb") as fh:
+            pickle.dump(self._action_log, fh)
