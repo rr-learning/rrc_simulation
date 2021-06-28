@@ -1,5 +1,9 @@
-Real Robot Challenge Simulation
-===============================
+Real Robot Challenge 2020 Simulation
+====================================
+
+**This package was only used for the RRC 2020 and is not maintained anymore.**
+
+---
 
 This repository is exclusively intended for participating
 in the [simulation phase of the Real Robot Challenge](https://real-robot-challenge.com/simulation_phase).
